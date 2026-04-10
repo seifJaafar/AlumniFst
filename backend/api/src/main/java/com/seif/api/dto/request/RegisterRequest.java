@@ -22,5 +22,11 @@ public class RegisterRequest {
     private String password;
 
     @NotNull(message = "Role is required")
-    private Role role; // STUDENT or ALUMNI (ADMIN created manually)
+    private Role role;
+
+    private String promotion;        // cohort/class label e.g. "L3-INFO" — for Etudiant
+
+    @Min(value = 1900, message = "Invalid graduation year")
+    @Max(value = 2100, message = "Invalid graduation year")
+    private Integer promotionYear;   // graduation year e.g. 2022 — for Alumni
 }

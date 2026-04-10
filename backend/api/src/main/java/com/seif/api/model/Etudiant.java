@@ -22,8 +22,7 @@ import java.util.Set;
 @Table(
     name = "etudiants",
     indexes = {
-        @Index(name = "idx_etudiant_promotion",  columnList = "promotion"),
-        @Index(name = "idx_etudiant_specialite", columnList = "specialite")
+        @Index(name = "idx_etudiant_promotion", columnList = "promotion")
     }
 )
 @DiscriminatorValue("ETUDIANT")
@@ -33,21 +32,32 @@ import java.util.Set;
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
 public class Etudiant extends User {
 
-    /** Current promotion / cohort year. */
+    /** Current promotion / cohort year e.g. "L3-INFO". */
     @NotBlank(message = "Promotion is required")
     @Column(name = "promotion", nullable = false, length = 10)
     private String promotion;
 
-    /** Speciality / major, e.g. "Informatique", "Mathématiques". */
-    @NotBlank(message = "Specialité is required")
-    @Size(max = 150)
-    @Column(name = "specialite", nullable = false, length = 150)
-    private String specialite;
+    // ----------------------------------------------------------------
+    // Experiences (same structure as Alumni)
+    // ----------------------------------------------------------------
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+        name = "etudiant_experiences",
+        joinColumns = @JoinColumn(name = "etudiant_id")
+    )
+    @OrderColumn(name = "experience_order")
+    private List<Experience> experiences = new ArrayList<>();
 
-    /** Class identifier, e.g. "L3-INFO-A". */
-    @Size(max = 50)
-    @Column(name = "classe", length = 50)
-    private String classe;
+    // ----------------------------------------------------------------
+    // Skills (same structure as Alumni)
+    // ----------------------------------------------------------------
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "etudiant_skills",
+        joinColumns        = @JoinColumn(name = "etudiant_id"),
+        inverseJoinColumns = @JoinColumn(name = "skill_id")
+    )
+    private Set<Skill> skills = new HashSet<>();
 
     // ----------------------------------------------------------------
     // Mentorship sessions where this student acts as MENTEE
