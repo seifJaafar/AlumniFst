@@ -22,18 +22,14 @@ import java.util.List;
     }
 )
 @Inheritance(strategy = InheritanceType.JOINED)
-
-@EntityListeners(AuditingEntityListener.class)// Maps to "users" table in Postgres
+@EntityListeners(AuditingEntityListener.class)
 @Getter @Setter
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-                  
-@NoArgsConstructor      // Lombok: generates no-args constructor
-@AllArgsConstructor     // Lombok: generates all-args constructor
-@Builder                // Lombok: enables User.builder().email("...").build()
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User implements UserDetails {
-    // UserDetails is a Spring Security interface — it tells Spring
-    // "this object represents an authenticated user"
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,57 +46,51 @@ public class User implements UserDetails {
     private String email;
 
     @Column(nullable = false)
-    private String password; // Will be stored HASHED, never plain text
+    private String password;
 
-    @Enumerated(EnumType.STRING) // Store "STUDENT"/"ALUMNI"/"ADMIN" as text
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
 
-    // Profile fields (nullable — filled in later)
+    // Profile fields (nullable — filled in later via update profile)
     private String phone;
     private String bio;
-    private String company;
-    private String jobTitle;
     private String country;
     private String city;
-    private Integer graduationYear;
     private String linkedinUrl;
+    private String githubUrl;   // ← added
     private String avatarUrl;
-    private String sector;
+    private String sector;      // ← kept (shared across roles)
 
-    private boolean isActive = true;
-    private boolean emailVerified = false;
+    private boolean isActive = false;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
 
-    @PrePersist  // Called automatically BEFORE saving a new record
+    @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
 
-    @PreUpdate   // Called automatically BEFORE updating a record
+    @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
 
     // ============================================
-    // UserDetails interface methods (Spring Security)
+    // UserDetails interface methods
     // ============================================
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Tells Spring Security what role/permission this user has
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override
-    public String getUsername() {
-        return email; // We use email as the username
-    }
+    public String getUsername() { return email; }
 
     @Override
     public boolean isAccountNonExpired() { return true; }

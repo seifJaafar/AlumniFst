@@ -26,8 +26,7 @@ import java.util.Set;
     name = "alumni",
     indexes = {
         @Index(name = "idx_alumni_promotion", columnList = "promotion"),
-        @Index(name = "idx_alumni_pays",      columnList = "pays"),
-        @Index(name = "idx_alumni_secteur",   columnList = "secteur")
+        @Index(name = "idx_alumni_entreprise", columnList = "entreprise")
     }
 )
 @DiscriminatorValue("ALUMNI")
@@ -37,10 +36,15 @@ import java.util.Set;
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
 public class Alumni extends User {
 
-    /** Year of graduation, e.g. "2019". */
-    @NotBlank(message = "Promotion year is required")
+    /** Cohort/class label e.g. "L3-INFO". */
+    @NotBlank(message = "Promotion is required")
     @Column(name = "promotion", nullable = false, length = 10)
     private String promotion;
+
+    /** Year of graduation e.g. 2022. */
+    @NotNull(message = "Graduation year is required")
+    @Column(name = "graduation_year", nullable = false)
+    private Integer graduationYear;
 
     /** Current employer. */
     @Size(max = 200)
@@ -49,21 +53,8 @@ public class Alumni extends User {
 
     /** Current job title. */
     @Size(max = 150)
-    @Column(name = "poste", length = 150)
-    private String poste;
-
-    /** Country of residence — used for the interactive map feature. */
-    @Size(max = 100)
-    @Column(name = "pays", length = 100)
-    private String pays;
-
-    /** Geographic coordinates for map pin (latitude). */
-    @Column(name = "latitude")
-    private Double latitude;
-
-    /** Geographic coordinates for map pin (longitude). */
-    @Column(name = "longitude")
-    private Double longitude;
+    @Column(name = "job_title", length = 150)
+    private String jobTitle;
 
     /** Short professional bio displayed on the profile page. */
     @Size(max = 2000)
@@ -75,19 +66,12 @@ public class Alumni extends User {
     @Column(name = "linkedin_url", length = 500)
     private String linkedinUrl;
 
-    /** Industry sector, e.g. "Technology", "Finance". Used for advanced filters. */
-    @Size(max = 100)
-    @Column(name = "secteur", length = 100)
-    private String secteur;
-
     /** Whether this alumni is open to mentor students. */
     @Column(name = "is_mentor", nullable = false)
     private boolean mentor = false;
 
     // ----------------------------------------------------------------
-    // Embedded list of work experiences (stored as @ElementCollection
-    // in a separate "alumni_experiences" table — avoids extra entity
-    // class while keeping full JPA mapping).
+    // Embedded list of work experiences
     // ----------------------------------------------------------------
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
@@ -136,10 +120,4 @@ public class Alumni extends User {
         fetch    = FetchType.LAZY
     )
     private List<Event> createdEvents = new ArrayList<>();
-
-    // ----------------------------------------------------------------
-    // Events this alumni participates in
-    // ----------------------------------------------------------------
-   
-
 }
