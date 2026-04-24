@@ -1,93 +1,107 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { authService } from "@/services/authService";
 
-export type UserRole = "alumni" | "student" | "admin";
+export type UserRole = "ALUMNI" | "ETUDIANT" | "ADMIN";
 
-export interface User {
-  id: string;
+export interface PublicUser {
+  userId: number;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   role: UserRole;
-  avatar?: string;
+}
+
+interface RegisterPayload {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  promotion?: string;
+  promotionYear?: number;
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: PublicUser | null;
   isLoading: boolean;
+  isInitializing: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (
-    email: string,
-    password: string,
-    name: string,
-    role: UserRole,
-  ) => Promise<void>;
-  logout: () => void;
+  register: (payload: RegisterPayload) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const isValidUser = (obj: unknown): obj is PublicUser =>
+  typeof obj === "object" &&
+  obj !== null &&
+  ["userId", "email", "firstName", "lastName", "role"].every(
+    (f) => f in (obj as object),
+  );
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<PublicUser | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true); // ← for app boot
+  const [isLoading, setIsLoading] = useState(false); // ← for login/register actions
 
   useEffect(() => {
-    // Check for stored user on mount
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (isValidUser(parsed)) setUser(parsed);
+        else localStorage.removeItem("user");
+      } catch {
+        localStorage.removeItem("user");
+      }
     }
-    setIsLoading(false);
+    setIsInitializing(false); // ← only this controls the boot state
   }, []);
+
+  const saveUser = (data: PublicUser) => {
+    setUser(data);
+    localStorage.setItem("user", JSON.stringify(data));
+  };
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
-    // Mock login - replace with actual API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const userData = await authService.login({ email, password });
 
-    const mockUser: User = {
-      id: "1",
-      email,
-      name: "John Doe",
-      role: "alumni",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + email,
-    };
-
-    setUser(mockUser);
-    localStorage.setItem("user", JSON.stringify(mockUser));
-    setIsLoading(false);
+      saveUser(userData);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const register = async (
-    email: string,
-    password: string,
-    name: string,
-    role: UserRole,
-  ) => {
+  const register = async (payload: RegisterPayload) => {
     setIsLoading(true);
-    // Mock register - replace with actual API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const mockUser: User = {
-      id: Date.now().toString(),
-      email,
-      name,
-      role,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + email,
-    };
-
-    setUser(mockUser);
-    localStorage.setItem("user", JSON.stringify(mockUser));
-    setIsLoading(false);
+    try {
+      await authService.register(payload);
+    } catch (error) {
+      throw error; // ← rethrow
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } finally {
+      setUser(null);
+      localStorage.removeItem("user");
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, isInitializing, login, register, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -95,8 +109,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };

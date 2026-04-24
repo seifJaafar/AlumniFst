@@ -59,13 +59,20 @@ export const Navbar = () => {
                   className="relative h-10 w-10 rounded-full"
                 >
                   <Avatar>
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage
+                      src={user.avatar}
+                      alt={`${user.firstName} ${user.lastName}`}
+                    />
+                    <AvatarFallback>
+                      {user.firstName?.charAt(0) ?? "?"}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                  {user.firstName} {user.lastName}
+                </DropdownMenuLabel>
                 <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
                   {user.email}
                 </DropdownMenuLabel>
