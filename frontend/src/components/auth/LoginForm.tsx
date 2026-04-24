@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ export const LoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       await login(email, password);
       toast({
@@ -28,10 +29,13 @@ export const LoginForm = () => {
         description: "You have successfully logged in.",
       });
       navigate("/");
-    } catch (error) {
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ??
+        "Something went wrong. Please try again.";
       toast({
         title: "Error",
-        description: "Invalid credentials. Please try again.",
+        description: message,
         variant: "destructive",
       });
     }

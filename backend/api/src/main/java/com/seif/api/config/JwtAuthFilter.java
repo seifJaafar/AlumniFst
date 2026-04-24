@@ -4,6 +4,7 @@ package com.seif.api.config;
 import com.seif.api.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,39 +26,54 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final UserDetailsServiceImpl userDetailsService; // ← concrete class, not the interface
 
     @Override
-    protected void doFilterInternal(
-            @NonNull HttpServletRequest request,
-            @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain
-    ) throws ServletException, IOException {
+protected void doFilterInternal(
+        @NonNull HttpServletRequest request,
+        @NonNull HttpServletResponse response,
+        @NonNull FilterChain filterChain
+) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
+    // Skip JWT authentication for auth endpoints
+    if (request.getRequestURI().startsWith("/api/auth/")) {
+        filterChain.doFilter(request, response);
+        return;
+    }
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+    String jwt = null;
 
-        final String jwt = authHeader.substring(7);
-        final String userEmail = jwtService.extractUsername(jwt);
-
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+    // Read from HttpOnly cookie instead of Authorization header
+    if (request.getCookies() != null) {
+        for (Cookie cookie : request.getCookies()) {
+            if ("jwt".equals(cookie.getName())) {
+                jwt = cookie.getValue();
+                break;
             }
         }
-
-        filterChain.doFilter(request, response);
     }
+
+    if (jwt == null) {
+        filterChain.doFilter(request, response);
+        return;
+    }
+
+    final String userEmail = jwtService.extractUsername(jwt);
+
+    if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
+
+        if (jwtService.isTokenValid(jwt, userDetails)) {
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+            authToken.setDetails(
+                    new WebAuthenticationDetailsSource().buildDetails(request)
+            );
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+        }
+    }
+
+    filterChain.doFilter(request, response);
+}
 }

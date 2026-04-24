@@ -62,18 +62,21 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        // unchanged
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
-
+        // Find user by email
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
-                        new ApiException("User not found", HttpStatus.NOT_FOUND)
+                        new ApiException("Invalid email or password", HttpStatus.UNAUTHORIZED)
                 );
+
+        // Verify password
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new ApiException("Invalid email or password", HttpStatus.UNAUTHORIZED);
+        }
+
+        // Check if account is approved by admin
+        if (!user.isActive()) {
+            throw new ApiException("Your account is pending admin approval", HttpStatus.FORBIDDEN);
+        }
 
         String token = jwtService.generateToken(user);
 

@@ -24,12 +24,13 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <NotificationProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
+        <NotificationProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+
             <div className="flex flex-col min-h-screen w-full">
               <Navbar />
               <main className="flex-1">
@@ -88,7 +89,7 @@ const App = () => (
                   <Route
                     path="/admin"
                     element={
-                      <ProtectedRoute allowedRoles={["admin"]}>
+                      <ProtectedRoute allowedRoles={["ADMIN"]}>
                         <AdminDashboard />
                       </ProtectedRoute>
                     }
@@ -99,10 +100,10 @@ const App = () => (
               </main>
               <Footer />
             </div>
-          </BrowserRouter>
-        </TooltipProvider>
-      </NotificationProvider>
-    </AuthProvider>
+          </TooltipProvider>
+        </NotificationProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
