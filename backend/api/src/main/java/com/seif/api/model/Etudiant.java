@@ -37,27 +37,9 @@ public class Etudiant extends User {
     @Column(name = "promotion", nullable = false, length = 10)
     private String promotion;
 
-    // ----------------------------------------------------------------
-    // Experiences (same structure as Alumni)
-    // ----------------------------------------------------------------
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(
-        name = "etudiant_experiences",
-        joinColumns = @JoinColumn(name = "etudiant_id")
-    )
-    @OrderColumn(name = "experience_order")
-    private List<Experience> experiences = new ArrayList<>();
+   
 
-    // ----------------------------------------------------------------
-    // Skills (same structure as Alumni)
-    // ----------------------------------------------------------------
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "etudiant_skills",
-        joinColumns        = @JoinColumn(name = "etudiant_id"),
-        inverseJoinColumns = @JoinColumn(name = "skill_id")
-    )
-    private Set<Skill> skills = new HashSet<>();
+ 
 
     // ----------------------------------------------------------------
     // Mentorship sessions where this student acts as MENTEE

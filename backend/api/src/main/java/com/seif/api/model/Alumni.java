@@ -73,32 +73,11 @@ public class Alumni extends User {
     // ----------------------------------------------------------------
     // Embedded list of work experiences
     // ----------------------------------------------------------------
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(
-        name = "alumni_experiences",
-        joinColumns = @JoinColumn(name = "alumni_id")
-    )
-    @OrderColumn(name = "experience_order")
-    private List<Experience> experiences = new ArrayList<>();
+   
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(
-        name = "alumni_studies",
-        joinColumns = @JoinColumn(name = "alumni_id")
-    )
-    @OrderColumn(name = "study_order")
-    private List<Study> studies = new ArrayList<>();
+  
 
-    // ----------------------------------------------------------------
-    // Skills (M:N with a join table)
-    // ----------------------------------------------------------------
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "alumni_skills",
-        joinColumns        = @JoinColumn(name = "alumni_id"),
-        inverseJoinColumns = @JoinColumn(name = "skill_id")
-    )
-    private Set<Skill> skills = new HashSet<>();
+   
 
     // ----------------------------------------------------------------
     // Mentorship sessions where this alumni acts as MENTOR

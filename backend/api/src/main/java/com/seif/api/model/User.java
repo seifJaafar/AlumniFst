@@ -10,8 +10,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(
@@ -51,7 +54,20 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
-
+    @ManyToMany(fetch = FetchType.LAZY)
+@JoinTable(
+    name = "user_skills",
+    joinColumns        = @JoinColumn(name = "user_id"),
+    inverseJoinColumns = @JoinColumn(name = "skill_id")
+)
+private Set<Skill> skills = new HashSet<>();
+@OneToMany(
+    mappedBy = "user",
+    cascade = CascadeType.ALL,
+    orphanRemoval = true,
+    fetch = FetchType.LAZY
+)
+private List<Experience> experiences = new ArrayList<>();
     // Profile fields (nullable — filled in later via update profile)
     private String phone;
     private String bio;
