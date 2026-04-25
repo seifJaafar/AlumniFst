@@ -9,54 +9,67 @@ import lombok.*;
  * Stored in "alumni_studies" via @ElementCollection on Alumni.
  * Models the LinkedIn "Education" section.
  */
-@Embeddable
+// Study.java
+@Entity
+@Table(name = "studies")
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Study {
 
-    /** e.g. "Université de Tunis El Manar", "ESPRIT", "INSAT" */
-    @NotBlank(message = "Institution name is required")
-    @Size(max = 200)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @ToString.Exclude
+    private User user;
+
+    @NotBlank(message = "Institution is required")
+    @Size(max = 200, message = "Institution must not exceed 200 characters")
     @Column(name = "institution", nullable = false, length = 200)
     private String institution;
 
-    /** e.g. "Licence", "Master", "Ingénieur", "Doctorat", "BTS" */
-    @Size(max = 100)
-    @Column(name = "degree", length = 100)
+    @NotBlank(message = "Degree is required")
+    @Size(max = 150, message = "Degree must not exceed 150 characters")
+    @Column(name = "degree", nullable = false, length = 150)
     private String degree;
 
-    /** e.g. "Informatique", "Génie Logiciel", "Réseaux & Télécoms" */
-    @Size(max = 200)
-    @Column(name = "field_of_study", length = 200)
+    @Size(max = 150, message = "Field of study must not exceed 150 characters")
+    @Column(name = "field_of_study", length = 150)
     private String fieldOfStudy;
 
-    /** Format: "YYYY-MM" */
+    @Pattern(
+        regexp = "^\\d{4}-(0[1-9]|1[0-2])$",
+        message = "Start date must be in YYYY-MM format"
+    )
     @Column(name = "start_date", length = 7)
     private String startDate;
 
-    /** Format: "YYYY-MM" — null if currently enrolled */
+    @Pattern(
+        regexp = "^\\d{4}-(0[1-9]|1[0-2])$",
+        message = "End date must be in YYYY-MM format"
+    )
     @Column(name = "end_date", length = 7)
     private String endDate;
 
-    @Column(name = "is_current")
-    private boolean current;
+    @Column(name = "is_current", nullable = false)
+    private boolean current = false;
 
-    /** Grade or mention, e.g. "Mention Très Bien", "15.4/20", "GPA 3.8" */
-    @Size(max = 100)
+    @Size(max = 2000, message = "Description must not exceed 2000 characters")
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
+    @Size(max = 100, message = "Grade must not exceed 100 characters")
     @Column(name = "grade", length = 100)
     private String grade;
 
-    /** Activities, clubs, associations, e.g. "Club Robotique, Junior Entreprise" */
-    @Size(max = 500)
+    @Size(max = 500, message = "Activities must not exceed 500 characters")
     @Column(name = "activities", length = 500)
     private String activities;
-
-    /** Thesis title, notable projects, or extra context */
-    @Size(max = 1000)
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
 }

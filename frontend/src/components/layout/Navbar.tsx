@@ -44,7 +44,7 @@ export const Navbar = () => {
             <Link to="/mentorship">
               <Button variant="ghost">Mentorship</Button>
             </Link>
-            {user.role === "admin" && (
+            {user.role === "ADMIN" && (
               <Link to="/admin">
                 <Button variant="ghost">Dashboard</Button>
               </Link>
@@ -60,7 +60,7 @@ export const Navbar = () => {
                 >
                   <Avatar>
                     <AvatarImage
-                      src={user.avatar}
+                      src={user.avatar_url ?? undefined}
                       alt={`${user.firstName} ${user.lastName}`}
                     />
                     <AvatarFallback>

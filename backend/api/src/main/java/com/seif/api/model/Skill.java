@@ -13,6 +13,7 @@ import java.util.Set;
  *
  * Examples: "React", "Spring Boot", "Machine Learning", "Data Analysis".
  */
+// Skill.java
 @Entity
 @Table(
     name = "skills",
@@ -29,22 +30,21 @@ import java.util.Set;
 public class Skill {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "skill_seq")
-    @SequenceGenerator(name = "skill_seq", sequenceName = "skill_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
 
     @NotBlank(message = "Skill name is required")
-    @Size(max = 100)
+    @Size(min = 1, max = 100, message = "Skill name must be between 1 and 100 characters")
     @Column(name = "name", nullable = false, unique = true, length = 100)
     @ToString.Include
     private String name;
 
-    /** Category grouping, e.g. "Programming", "Management", "Design". */
-    @Size(max = 100)
+    @Size(max = 100, message = "Category must not exceed 100 characters")
     @Column(name = "category", length = 100)
     private String category;
 
     @ManyToMany(mappedBy = "skills", fetch = FetchType.LAZY)
-    private Set<Alumni> alumni = new HashSet<>();
+    @ToString.Exclude
+    private Set<User> users = new HashSet<>();
 }
